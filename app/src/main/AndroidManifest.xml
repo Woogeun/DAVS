@@ -17,6 +17,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".LoadingActivity"/>
+        <activity android:name=".InspectionActivity"/>
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
             android:value="ocr" />

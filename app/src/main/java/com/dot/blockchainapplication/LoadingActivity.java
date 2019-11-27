@@ -81,33 +81,36 @@ public class LoadingActivity extends AppCompatActivity {
 
                                 String resultText = result.getText();
                                 textView.setText(resultText);
-//                        for (TextBlock block: result.getTextBlocks()) {
-//                            String blockText = block.getText();
-//                            Float blockConfidence = block.getConfidence();
-//                            List<RecognizedLanguage> blockLanguages = block.getRecognizedLanguages();
-//                            Point[] blockCornerPoints = block.getCornerPoints();
-//                            Rect blockFrame = block.getBoundingBox();
-//                            for (Line line: block.getLines()) {
-//                                String lineText = line.getText();
-//                                Float lineConfidence = line.getConfidence();
-//                                List<RecognizedLanguage> lineLanguages = line.getRecognizedLanguages();
-//                                Point[] lineCornerPoints = line.getCornerPoints();
-//                                Rect lineFrame = line.getBoundingBox();
-//                                for (Element element: line.getElements()) {
-//                                    String elementText = element.getText();
-//                                    Float elementConfidence = element.getConfidence();
-//                                    List<RecognizedLanguage> elementLanguages = element.getRecognizedLanguages();
-//                                    Point[] elementCornerPoints = element.getCornerPoints();
-//                                    Rect elementFrame = element.getBoundingBox();
+                                Intent inspectionIndent = new Intent(LoadingActivity.this, InspectionActivity.class);
+                                inspectionIndent.putExtra("text", resultText);
+                                startActivity(inspectionIndent);
+//                                for (TextBlock block: result.getTextBlocks()) {
+//                                    String blockText = block.getText();
+//                                    Float blockConfidence = block.getConfidence();
+//                                    List<RecognizedLanguage> blockLanguages = block.getRecognizedLanguages();
+//                                    Point[] blockCornerPoints = block.getCornerPoints();
+//                                    Rect blockFrame = block.getBoundingBox();
+//                                    for (Line line: block.getLines()) {
+//                                        String lineText = line.getText();
+//                                        Float lineConfidence = line.getConfidence();
+//                                        List<RecognizedLanguage> lineLanguages = line.getRecognizedLanguages();
+//                                        Point[] lineCornerPoints = line.getCornerPoints();
+//                                        Rect lineFrame = line.getBoundingBox();
+//                                        for (Element element: line.getElements()) {
+//                                            String elementText = element.getText();
+//                                            Float elementConfidence = element.getConfidence();
+//                                            List<RecognizedLanguage> elementLanguages = element.getRecognizedLanguages();
+//                                            Point[] elementCornerPoints = element.getCornerPoints();
+//                                            Rect elementFrame = element.getBoundingBox();
+//                                        }
+//                                    }
 //                                }
-//                            }
-//                        }
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Log.d("========= OCR is ", "Success ============");
+                                Log.d("========= OCR is ", "Fail ============");
 
                             }
                         });
