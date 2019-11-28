@@ -1,5 +1,7 @@
 package com.dot.blockchainapplication;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,7 +13,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,7 +35,6 @@ import java.util.List;
 
 public class LoadingActivity extends AppCompatActivity {
     private ImageView imageView;
-    private TextView textView;
     public static final int PICK_IMAGE = 1;
 
     @Override
@@ -42,7 +43,6 @@ public class LoadingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_loading);
 
         imageView = this.findViewById(R.id.imageView);
-        textView = this.findViewById(R.id.textView);
 
         Intent imageIntent = getIntent();
         byte[] byteArray = imageIntent.getExtras().getByteArray("image");
@@ -62,6 +62,25 @@ public class LoadingActivity extends AppCompatActivity {
         startActivityForResult(chooserIntent, PICK_IMAGE);
     }
 
+    public void returnToMainActivity() {
+        Intent mainIntent = new Intent(LoadingActivity.this, MainActivity.class);
+        startActivity(mainIntent);
+    }
+
+    void showAlert(String title, String message)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setPositiveButton("Go home",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(),"Go home",Toast.LENGTH_SHORT).show();
+                        returnToMainActivity();
+                    }
+                });
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -69,6 +88,7 @@ public class LoadingActivity extends AppCompatActivity {
             Uri uri = data.getData();
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+                imageView.setImageBitmap(bitmap);
                 FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
                 FirebaseVisionTextRecognizer textRecognizer = FirebaseVision.getInstance()
                         .getOnDeviceTextRecognizer();
@@ -77,13 +97,9 @@ public class LoadingActivity extends AppCompatActivity {
                         .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
                             @Override
                             public void onSuccess(FirebaseVisionText result) {
-                                Log.d("========= OCR is ", "Success ============");
 
                                 String resultText = result.getText();
-                                textView.setText(resultText);
-                                Intent inspectionIndent = new Intent(LoadingActivity.this, InspectionActivity.class);
-                                inspectionIndent.putExtra("text", resultText);
-                                startActivity(inspectionIndent);
+
 //                                for (TextBlock block: result.getTextBlocks()) {
 //                                    String blockText = block.getText();
 //                                    Float blockConfidence = block.getConfidence();
@@ -105,12 +121,15 @@ public class LoadingActivity extends AppCompatActivity {
 //                                        }
 //                                    }
 //                                }
+                                Intent inspectionIndent = new Intent(LoadingActivity.this, InspectionActivity.class);
+                                inspectionIndent.putExtra("text", resultText);
+                                startActivity(inspectionIndent);
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Log.d("========= OCR is ", "Fail ============");
+                                showAlert("OCR Failed", "Try Other picture");
 
                             }
                         });
