@@ -14,6 +14,10 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,20 +27,20 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InspectionActivity extends AppCompatActivity {
     private static EditText editText;
-    private static final int REQUEST_SUCCESS = 777;
-    private static final int REQUEST_FAIL_REJECTED = 666;
-    private static final int REQUEST_FAIL_NETWORK = 444;
+    private static final int REQUEST_TRUE = 777;
+    private static final int REQUEST_FALSE = 666;
 
-    private static final int VERIFY_SUCCESS = 7777;
-    private static final int VERIFY_FAILURE = 6666;
+    private static final int VERIFY_TRUE = 7777;
+    private static final int VERIFY_FALSE = 6666;
 
-    private static String responseServer = null;
-    private static final String SUCCESS_RESPONSE = "Hello nodejs";
-//    private static final String SUCCESS_RESPONSE = "Success";
-    private static final String FAILURE_RESPONSE = "Failure";
+    private static final String TRUE_RESPONSE = "Hello nodejs;";
+    private static final String FALSE_RESPONSE = "false";
+    private static final String FAIL_RESPONSE = "fail";
 
 
     @Override
@@ -52,32 +56,52 @@ public class InspectionActivity extends AppCompatActivity {
 
     static JSONObject text2Json() {
         JSONObject jsonObject = new JSONObject();
-        String[] text_list = editText.getText().toString().split("\n");
+        String[] block_list = editText.getText().toString().split("\n\n");
+        JSONArray contents = new JSONArray();
+        for (String block_str: block_list) {
+            JSONArray block = new JSONArray();
+
+            String[] line_list = block_str.split("\n");
+            try {
+                for (String line_str : line_list) {
+                    JSONObject line = new JSONObject();
+                    line.put("line", line_str);
+                    block.put(line);
+                }
+                JSONObject block_obj = new JSONObject();
+                block_obj.put("block", block);
+                contents.put(block_obj);
+                
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+        }
 
         try {
-            jsonObject.put("content", text_list);
+            jsonObject.put("content", contents);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJsonString = gson.toJson(jsonObject);
+
+        Log.e("InspectionActivity", prettyJsonString);
+
 
         return jsonObject;
     }
 
-    static class FoolException extends RuntimeException {
+    static String requestServer(JSONObject jsonObject) {
+        try {
+            String response = new SendDeviceDetails().execute("http://192.249.31.196:8888/", jsonObject.toString()).get();
+            return response;
 
-    }
-
-    static Boolean requestServer(JSONObject jsonObject) {
-        new SendDeviceDetails().execute("http://110.76.82.39:8888/", jsonObject.toString());
-
-        if (responseServer == SUCCESS_RESPONSE) {
-            return true;
-        } else if (responseServer == FAILURE_RESPONSE) {
-            return false;
-        } else {
-            throw new FoolException();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Exception";
         }
-
     }
 
     public void returnToMainActivity() {
@@ -98,7 +122,7 @@ public class InspectionActivity extends AppCompatActivity {
                         returnToMainActivity();
                     }
                 });
-        if (requestCode == REQUEST_FAIL_NETWORK) {
+        if (requestCode == REQUEST_FALSE || requestCode == VERIFY_FALSE) {
             builder.setNegativeButton("Try again",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -112,35 +136,35 @@ public class InspectionActivity extends AppCompatActivity {
     public void registerButton(View v){
         JSONObject jsonObject = text2Json();
 
-        try {
-            Boolean response = requestServer(jsonObject);
+        String response = requestServer(jsonObject);
 
-            if (response) {
-                showAlert("Request Success", "Congratulations!", REQUEST_SUCCESS);
-            } else {
-                showAlert("Request Failure", "Rejected register.", REQUEST_FAIL_REJECTED);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Request Failure", "Network connection Failed.", REQUEST_FAIL_NETWORK);
+        if (response.equals(TRUE_RESPONSE)) {
+            showAlert("Request True", "Congratulations!", REQUEST_TRUE);
+        } else if (response.equals(FALSE_RESPONSE)) {
+            showAlert("Request False", "Rejected register.", REQUEST_FALSE);
+        } else if (response.equals(FAIL_RESPONSE)) {
+            showAlert("Request Fail", "Network connection fail.", REQUEST_FALSE);
+        } else {
+            showAlert("Request Exception", "Exception occurs.", REQUEST_FALSE);
         }
+
     }
 
     public void verifyButton(View v){
         JSONObject jsonObject = text2Json();
 
-        try {
-            Boolean response = requestServer(jsonObject);
+        String response = requestServer(jsonObject);
 
-            if (response) {
-                showAlert("Verify Success", "Verified document", VERIFY_SUCCESS);
-            } else {
-                showAlert("Verify Failure", "Unverified document", VERIFY_FAILURE);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Request Failure", "Network connection Failed.", REQUEST_FAIL_NETWORK);
+        if (response.equals(TRUE_RESPONSE)) {
+            showAlert("Verify True", "Verified document!", VERIFY_TRUE);
+        } else if (response.equals(FALSE_RESPONSE)) {
+            showAlert("Verify False", "Unverified document.", VERIFY_FALSE);
+        } else if (response.equals(FAIL_RESPONSE)) {
+            showAlert("Verify Fail", "Network connection fail.", VERIFY_FALSE);
+        } else {
+            showAlert("Verify Exception", "Exception occurs.", VERIFY_FALSE);
         }
+
     }
 
 
@@ -188,7 +212,6 @@ public class InspectionActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             editText.setText(result);
-            responseServer = result;
             Log.e("TAG", result); // this is expecting a response code to be sent from your server upon receiving the POST data
         }
     }

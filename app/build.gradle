@@ -29,6 +29,7 @@ dependencies {
 
     // My code
     implementation 'com.google.firebase:firebase-analytics:17.2.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 // My code
