@@ -41,15 +41,17 @@ public class LoadingActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
-
         imageView = this.findViewById(R.id.imageView);
 
+        // Set image activity image to received bitmap image
         Intent imageIntent = getIntent();
         byte[] byteArray = imageIntent.getExtras().getByteArray("image");
         Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         imageView.setImageBitmap(bitmap);
 
 
+        // Current Implementation goes through gallery pick activity.
+        // Picked image is transmitted to onActivityResult method.
         Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
         getIntent.setType("image/*");
 
@@ -62,39 +64,27 @@ public class LoadingActivity extends AppCompatActivity {
         startActivityForResult(chooserIntent, PICK_IMAGE);
     }
 
-    public void returnToMainActivity() {
-        Intent mainIntent = new Intent(LoadingActivity.this, MainActivity.class);
-        startActivity(mainIntent);
-    }
 
-    void showAlert(String title, String message)
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title);
-        builder.setMessage(message);
-        builder.setPositiveButton("Go home",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getApplicationContext(),"Go home",Toast.LENGTH_SHORT).show();
-                        returnToMainActivity();
-                    }
-                });
-    }
-
+    // Received image and do OCR
+    // Structured string transmitted to InspectionActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE) {
             Uri uri = data.getData();
             try {
+                // Convert bitmap image to FireBaseVision image type for OCR
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
                 imageView.setImageBitmap(bitmap);
                 FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
                 FirebaseVisionTextRecognizer textRecognizer = FirebaseVision.getInstance()
                         .getOnDeviceTextRecognizer();
 
+                // Action for each success and failure of OCR
                 textRecognizer.processImage(image)
                         .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
+
+                            // Success
                             @Override
                             public void onSuccess(FirebaseVisionText result) {
 
@@ -112,24 +102,28 @@ public class LoadingActivity extends AppCompatActivity {
                                         List<RecognizedLanguage> lineLanguages = line.getRecognizedLanguages();
                                         Point[] lineCornerPoints = line.getCornerPoints();
                                         Rect lineFrame = line.getBoundingBox();
-                                        for (Element element: line.getElements()) {
-                                            String elementText = element.getText();
-                                            Float elementConfidence = element.getConfidence();
-                                            List<RecognizedLanguage> elementLanguages = element.getRecognizedLanguages();
-                                            Point[] elementCornerPoints = element.getCornerPoints();
-                                            Rect elementFrame = element.getBoundingBox();
-                                        }
+//                                        for (Element element: line.getElements()) {
+//                                            String elementText = element.getText();
+//                                            Float elementConfidence = element.getConfidence();
+//                                            List<RecognizedLanguage> elementLanguages = element.getRecognizedLanguages();
+//                                            Point[] elementCornerPoints = element.getCornerPoints();
+//                                            Rect elementFrame = element.getBoundingBox();
+//                                        }
                                         resultText += lineText + "\n";
                                     }
 
                                     resultText += "\n";
                                 }
+
+                                // Send the structured string to InspectionActivity
                                 Intent inspectionIndent = new Intent(LoadingActivity.this, InspectionActivity.class);
                                 inspectionIndent.putExtra("text", resultText);
                                 startActivity(inspectionIndent);
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
+
+                            // Failure
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 showAlert("OCR Failed", "Try Other picture");
@@ -140,6 +134,27 @@ public class LoadingActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    // Method for return to main activity
+    public void returnToMainActivity() {
+        Intent mainIntent = new Intent(LoadingActivity.this, MainActivity.class);
+        startActivity(mainIntent);
+    }
+
+    // Show alert method
+    void showAlert(String title, String message)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setPositiveButton("Go home",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(),"Go home",Toast.LENGTH_SHORT).show();
+                        returnToMainActivity();
+                    }
+                });
     }
 }
 

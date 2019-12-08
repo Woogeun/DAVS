@@ -38,11 +38,12 @@ public class InspectionActivity extends AppCompatActivity {
     private static final int VERIFY_TRUE = 7777;
     private static final int VERIFY_FALSE = 6666;
 
-    private static final String TRUE_RESPONSE = "Hello nodejs;";
+    private static final String TRUE_RESPONSE = "true";
     private static final String FALSE_RESPONSE = "false";
     private static final String FAIL_RESPONSE = "fail";
 
 
+    // Set activity editText object to received text
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,48 +55,50 @@ public class InspectionActivity extends AppCompatActivity {
         editText.setText(text);
     }
 
+    // Return the Json object about editText text
     static JSONObject text2Json() {
         JSONObject jsonObject = new JSONObject();
-        String[] block_list = editText.getText().toString().split("\n\n");
+
         JSONArray contents = new JSONArray();
+        String[] block_list = editText.getText().toString().split("\n\n");
         for (String block_str: block_list) {
             JSONArray block = new JSONArray();
-
             String[] line_list = block_str.split("\n");
+
             try {
                 for (String line_str : line_list) {
+                    Log.e("line", line_str);
                     JSONObject line = new JSONObject();
                     line.put("line", line_str);
                     block.put(line);
                 }
+
                 JSONObject block_obj = new JSONObject();
                 block_obj.put("block", block);
                 contents.put(block_obj);
-                
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
-
         }
 
         try {
-            jsonObject.put("content", contents);
+            jsonObject.put("contents", contents);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String prettyJsonString = gson.toJson(jsonObject);
-
-        Log.e("InspectionActivity", prettyJsonString);
-
+//        Log.e("InspectionActivity", prettyJsonString);
 
         return jsonObject;
     }
 
-    static String requestServer(JSONObject jsonObject) {
+    // Request to server and return the response
+    static String requestServer(JSONObject jsonObject, String phase) {
         try {
-            String response = new SendDeviceDetails().execute("http://192.249.31.196:8888/", jsonObject.toString()).get();
+            String response = new SendDeviceDetails().execute("http://192.249.31.196:8888", jsonObject.toString(), phase).get();
             return response;
 
         } catch (Exception e) {
@@ -104,12 +107,13 @@ public class InspectionActivity extends AppCompatActivity {
         }
     }
 
+    // Method for return to main activity
     public void returnToMainActivity() {
         Intent mainIntent = new Intent(InspectionActivity.this, MainActivity.class);
         startActivity(mainIntent);
     }
 
-
+    // Show alert method
     public void showAlert(String title, String message, int requestCode)
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -133,10 +137,11 @@ public class InspectionActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // Action for register button
     public void registerButton(View v){
         JSONObject jsonObject = text2Json();
 
-        String response = requestServer(jsonObject);
+        String response = requestServer(jsonObject, "register");
 
         if (response.equals(TRUE_RESPONSE)) {
             showAlert("Request True", "Congratulations!", REQUEST_TRUE);
@@ -150,10 +155,11 @@ public class InspectionActivity extends AppCompatActivity {
 
     }
 
+    // Action for verify button
     public void verifyButton(View v){
         JSONObject jsonObject = text2Json();
 
-        String response = requestServer(jsonObject);
+        String response = requestServer(jsonObject, "verify");
 
         if (response.equals(TRUE_RESPONSE)) {
             showAlert("Verify True", "Verified document!", VERIFY_TRUE);
@@ -167,7 +173,7 @@ public class InspectionActivity extends AppCompatActivity {
 
     }
 
-
+    // Http request helper class
     private static class SendDeviceDetails extends AsyncTask<String, Void, String> {
 
         @Override
@@ -180,13 +186,21 @@ public class InspectionActivity extends AppCompatActivity {
 
                 httpURLConnection = (HttpURLConnection) new URL(params[0]).openConnection();
                 httpURLConnection.setRequestMethod("POST");
+                httpURLConnection.setRequestProperty("phase", params[2]);
+                httpURLConnection.setRequestProperty("body", params[1]);
+                httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                httpURLConnection.setRequestProperty("Accept", "text/plain");
 
                 httpURLConnection.setDoOutput(true);
 
                 DataOutputStream wr = new DataOutputStream(httpURLConnection.getOutputStream());
-                wr.writeBytes("PostData=" + params[1]);
+                wr.writeBytes(params[1]);
                 wr.flush();
                 wr.close();
+
+                int responseCode = httpURLConnection.getResponseCode();
+                Log.e("response code", Integer.toString(responseCode));
+
 
                 InputStream in = httpURLConnection.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(in);
@@ -197,6 +211,7 @@ public class InspectionActivity extends AppCompatActivity {
                     inputStreamData = inputStreamReader.read();
                     data += current;
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -208,6 +223,7 @@ public class InspectionActivity extends AppCompatActivity {
             return data;
         }
 
+        // Set editText test to received response
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
