@@ -98,7 +98,7 @@ public class InspectionActivity extends AppCompatActivity {
     // Request to server and return the response
     static String requestServer(JSONObject jsonObject, String phase) {
         try {
-            String response = new SendDeviceDetails().execute("http://192.249.31.196:8888", jsonObject.toString(), phase).get();
+            String response = new SendDeviceDetails().execute("http://143.248.140.214:8888", jsonObject.toString(), phase).get();
             return response;
 
         } catch (Exception e) {
