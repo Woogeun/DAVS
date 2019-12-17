@@ -1,43 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <EditText
         android:id="@+id/editText"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="502dp"
         android:layout_gravity="center_horizontal"
         android:layout_margin="20dp"
         android:ems="10"
         android:gravity="start|top"
         android:inputType="textMultiLine" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/register"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="140dp"
+        android:layout_height="70dp"
         android:layout_gravity="bottom|left"
-        android:text="Register"
-        android:textColor="@android:color/holo_purple"
-        android:textStyle="bold"
-        android:fontFamily="monospace"
-        android:background="@android:color/holo_orange_light"
-        android:layout_marginBottom="20dp"
         android:layout_marginLeft="20dp"
-        android:onClick="registerButton"/>
 
-    <Button
-        android:id="@+id/verify"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|right"
-        android:text="Verify"
-        android:textColor="@android:color/holo_purple"
-        android:textStyle="bold"
-        android:fontFamily="monospace"
-        android:background="@android:color/holo_orange_light"
         android:layout_marginBottom="20dp"
+        android:fontFamily="@font/roboto_bold"
+        android:onClick="registerButton"
+        android:text="Register"
+        app:cornerRadius="10dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/verify"
+        android:layout_width="140dp"
+        android:layout_height="70dp"
+        android:layout_gravity="bottom|right"
         android:layout_marginRight="20dp"
-        android:onClick="verifyButton"/>
+        android:layout_marginBottom="20dp"
+
+        android:fontFamily="@font/roboto_bold"
+        android:onClick="verifyButton"
+        android:text="Verify"
+        app:cornerRadius="10dp" />
+
 </FrameLayout>

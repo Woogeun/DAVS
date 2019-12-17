@@ -80,6 +80,7 @@ public class LoadingActivity extends AppCompatActivity {
                 FirebaseVisionTextRecognizer textRecognizer = FirebaseVision.getInstance()
                         .getOnDeviceTextRecognizer();
 
+                final long start = System.currentTimeMillis();
                 // Action for each success and failure of OCR
                 textRecognizer.processImage(image)
                         .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
@@ -87,6 +88,8 @@ public class LoadingActivity extends AppCompatActivity {
                             // Success
                             @Override
                             public void onSuccess(FirebaseVisionText result) {
+                                long end = System.currentTimeMillis();
+                                System.out.println( "************OCR : " + ( end - start )/1000.0 + "s");
 
                                 String resultText = "";
 

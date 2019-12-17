@@ -39,7 +39,7 @@ public class InspectionActivity extends AppCompatActivity {
     private static final int VERIFY_FALSE = 6666;
 
     private static final String TRUE_RESPONSE = "true";
-    private static final String FALSE_RESPONSE = "false";
+    private static final String FALSE_RESPONSE = "fail";
     private static final String FAIL_RESPONSE = "fail";
 
 
@@ -98,7 +98,7 @@ public class InspectionActivity extends AppCompatActivity {
     // Request to server and return the response
     static String requestServer(JSONObject jsonObject, String phase) {
         try {
-            String response = new SendDeviceDetails().execute("http://143.248.140.214:8888", jsonObject.toString(), phase).get();
+            String response = new SendDeviceDetails().execute("http://143.248.140.214:10022", jsonObject.toString(), phase).get();
             return response;
 
         } catch (Exception e) {
@@ -141,7 +141,12 @@ public class InspectionActivity extends AppCompatActivity {
     public void registerButton(View v){
         JSONObject jsonObject = text2Json();
 
+        long start = System.currentTimeMillis();
         String response = requestServer(jsonObject, "register");
+        long end = System.currentTimeMillis();
+        System.out.println( "************Register : " + ( end - start )/1000.0 + "s");
+
+
 
         if (response.equals(TRUE_RESPONSE)) {
             showAlert("Request True", "Congratulations!", REQUEST_TRUE);
@@ -159,7 +164,10 @@ public class InspectionActivity extends AppCompatActivity {
     public void verifyButton(View v){
         JSONObject jsonObject = text2Json();
 
+        long start = System.currentTimeMillis();
         String response = requestServer(jsonObject, "verify");
+        long end = System.currentTimeMillis();
+        System.out.println( "************Verify : " + ( end - start )/1000.0 + "s");
 
         if (response.equals(TRUE_RESPONSE)) {
             showAlert("Verify True", "Verified document!", VERIFY_TRUE);
@@ -227,7 +235,7 @@ public class InspectionActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            editText.setText(result);
+//            editText.setText(result);
             Log.e("TAG", result); // this is expecting a response code to be sent from your server upon receiving the POST data
         }
     }
